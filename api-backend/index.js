@@ -1,23 +1,57 @@
 const express = require('express');
 const cors = require('cors');
-const app = express();
+const mysql = require('mysql2');
 
+const app = express();
 app.use(cors());
 app.use(express.json());
 
-let products = [
-  { id: 1, name: 'Sữa tươi Vinamilk', desc: 'Hộp 1L' },
-  { id: 2, name: 'Trứng gà sạch', desc: 'Hộp 10 quả' }
-];
-
-app.get('/api/products', (req, res) => {
-  res.json(products);
+// Kết nối MySQL
+const db = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: 'Luan14102019',
+  database: 'food_beverage_db'
 });
 
+db.connect(err => {
+  if (err) throw err;
+  console.log('✅ MySQL connected');
+});
+
+// GET: lấy danh sách sản phẩm từ database
+app.get('/api/products', (req, res) => {
+  const query = 'SELECT * FROM products';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('❌ Lỗi khi truy vấn dữ liệu:', err);
+      return res.status(500).json({ error: 'Lỗi khi lấy danh sách sản phẩm' });
+    }
+    res.json(results);
+  });
+});
+
+// POST: thêm sản phẩm vào database
 app.post('/api/products', (req, res) => {
-  const newProduct = { ...req.body, id: Date.now() };
-  products.push(newProduct);
-  res.status(201).json(newProduct);
+  const { name, description } = req.body;
+
+  if (!name || !description) {
+    return res.status(400).json({ error: 'Thiếu name hoặc description' });
+  }
+
+  const query = 'INSERT INTO products (name, description) VALUES (?, ?)';
+  db.query(query, [name, description], (err, result) => {
+    if (err) {
+      console.error('❌ Lỗi khi thêm sản phẩm:', err);
+      return res.status(500).json({ error: 'Lỗi khi thêm sản phẩm' });
+    }
+
+    res.status(201).json({
+      id: result.insertId,
+      name,
+      description
+    });
+  });
 });
 
 app.listen(3001, () => {
