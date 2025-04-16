@@ -29,3 +29,27 @@ export async function addProduct(product) {
     return null;
   }
 }
+
+export async function updateProduct(id, updatedProduct) {
+  console.log("🔧 Đang cập nhật sản phẩm ID:", id);
+  try {
+    const res = await fetch(`${API_URL}/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedProduct),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Lỗi khi cập nhật sản phẩm: ${res.status}`);
+    }
+
+    return await res.json();
+  } catch (err) {
+    console.error("Lỗi khi cập nhật sản phẩm:", err.message);
+    console.log("🔧 Updating product ID:", id);
+
+    return null;
+  }
+}

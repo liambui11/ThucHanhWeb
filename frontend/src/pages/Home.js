@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getProducts, addProduct } from "../api/productApi";
+import { getProducts, addProduct, updateProduct } from "../api/productApi";
 import "./Home.css";
 
 function Home() {
@@ -16,44 +16,38 @@ function Home() {
   const handleAdd = async () => {
     if (!name || !description) return;
     const newProduct = await addProduct({ name, description });
-    setProducts([...products, newProduct]);
+    setProducts((prevProducts) => [...prevProducts, newProduct]);
     setName("");
     setDescription("");
   };
 
-  // const handleUpdate = async () => {
-  //   if (!name || !description) return alert("Tên và mô tả không thể để trống!");
+  const handleUpdate = async () => {
+    if (!name || !description) {
+      return alert("Tên và mô tả không thể để trống!");
+    }
 
-  //   if (!selectedProduct) return alert("Vui lòng chọn sản phẩm để sửa!");
+    if (!selectedProduct) {
+      return alert("Vui lòng chọn sản phẩm để sửa!");
+    }
 
-  //   try {
-  //     // Gửi yêu cầu cập nhật sản phẩm
-  //     const updatedProduct = await updateProduct(selectedProduct.id, {
-  //       name,
-  //       description,
-  //     });
+    try {
+      const updatedProduct = await updateProduct(selectedProduct.id, {
+        name,
+        description,
+      });
 
-  //     // Cập nhật lại danh sách sản phẩm trong state
-  //     setProducts(
-  //       products.map((p) =>
-  //         p.id === updatedProduct.id
-  //           ? {
-  //               ...p,
-  //               name: updatedProduct.name,
-  //               description: updatedProduct.description,
-  //             }
-  //           : p
-  //       )
-  //     );
+      if (updatedProduct) {
+        // Fetch lại dữ liệu sau khi cập nhật sản phẩm
+        getProducts().then(setProducts);
 
-  //     setName(""); // Reset input
-  //     setDescription(""); // Reset input
-  //     setSelectedProduct(null); // Reset sản phẩm đã chọn
-  //   } catch (error) {
-  //     console.error("Lỗi khi cập nhật sản phẩm:", error.message);
-  //   }
-  // };
-
+        setName("");
+        setDescription("");
+        setSelectedProduct(null);
+      }
+    } catch (error) {
+      console.error("Lỗi khi cập nhật sản phẩm:", error.message);
+    }
+  };
 
   return (
     <div>
@@ -77,7 +71,7 @@ function Home() {
         placeholder="Mô tả"
       />
       <button onClick={handleAdd}>Thêm sản phẩm</button>
-      {/* <button onClick={handleUpdate}>Sửa sản phẩm</button> */}
+      <button onClick={handleUpdate}>Sửa sản phẩm</button>
 
       {products.map((p) => (
         <div
